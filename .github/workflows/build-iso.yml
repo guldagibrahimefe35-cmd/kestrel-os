@@ -1,0 +1,36 @@
+name: Build Kestrel ISO
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android
+          df -h /
+
+      - name: Install Debian keyring
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y debian-archive-keyring
+
+      - name: Build ISO
+        run: sudo bash build-kestrel.sh
+
+      - name: Collect ISO
+        run: |
+          mkdir -p out
+          sudo cp /root/kestrel-build/*.iso out/
+          sudo chown -R "$USER" out
+
+      - name: Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: kestrel-os-iso
+          path: out/*.iso
+          retention-days: 7
